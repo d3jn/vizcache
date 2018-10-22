@@ -2,7 +2,7 @@
 
 namespace D3jn\Vizcache\Helpers;
 
-use D3jn\Vizcache\Facades\Stats;
+use D3jn\Vizcache\Facades\Vizcache;
 
 class FakeAnalyst
 {

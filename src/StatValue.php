@@ -2,7 +2,7 @@
 
 namespace D3jn\Vizcache;
 
-use D3jn\Vizcache\Facades\Stats;
+use D3jn\Vizcache\Facades\Vizcache;
 
 class StatValue
 {
@@ -33,7 +33,7 @@ class StatValue
      */
     public function get($default = null)
     {
-        return Stats::get($this->statName, $default, $this->parameters);
+        return Vizcache::get($this->statName, $default, $this->parameters);
     }
 
     /**
@@ -43,7 +43,7 @@ class StatValue
      */
     public function touch(): void
     {
-        Stats::touch($this->statName, $this->parameters);
+        Vizcache::touch($this->statName, $this->parameters);
     }
 
     /**
@@ -54,7 +54,7 @@ class StatValue
      */
     public function update($default = null)
     {
-        return Stats::update($this->statName, $default, $this->parameters);
+        return Vizcache::update($this->statName, $default, $this->parameters);
     }
 
     /**
@@ -64,6 +64,6 @@ class StatValue
      */
     public function forget(): void
     {
-        Stats::forget($this->statName, $this->parameters);
+        Vizcache::forget($this->statName, $this->parameters);
     }
 }
