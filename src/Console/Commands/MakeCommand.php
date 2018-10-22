@@ -79,7 +79,7 @@ abstract class MakeCommand extends Command
         }
 
         $this->files->put($path, $content);
-        $this->info("Stats {$this->type} created successfully.");
+        $this->info("Vizcache {$this->type} created successfully.");
     }
 
     /**
@@ -92,7 +92,7 @@ abstract class MakeCommand extends Command
     {
         $plural = ucfirst($this->getPluralType());
 
-        return app_path("Stats/$plural/$name.php");
+        return app_path("Vizcache/$plural/$name.php");
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Stats\Analysts;
+namespace App\Vizcache\Analysts;
 
 use D3jn\Vizcache\Analyst;
 
@@ -18,8 +18,8 @@ class {{class}} extends Analyst
      *
      * @return mixed
      */
-    public function test($arg)
+    public function foo($bar)
     {
-        return $arg;
+        return $bar;
     }
 }
