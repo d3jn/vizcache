@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Stats\Managers;
+
+use D3jn\Vizcache\Manager;
+use D3jn\Vizcache\StatStoringState;
+
+class {{class}} extends Manager
+{
+    /**
+     * Whether to do auto hashing for unexisting methods.
+     *
+     * @var bool
+     */
+    protected $autoHashing = true;
+
+    /**
+     * List of unexisting method names to use auto hashing on. If $autoHashing is
+     * set true this value affects nothing.
+     *
+     * @var array
+     */
+    protected $auto = [];
+
+    /**
+     * Test.
+     *
+     * @param  mixed $arg
+     * @return \D3jn\Vizcache\StatStoringState
+     */
+    public function test($arg): StatStoringState
+    {
+        return $this->state((string) $arg, null);
+    }
+}

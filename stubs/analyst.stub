@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Stats\Analysts;
+
+use D3jn\Vizcache\Analyst;
+
+class {{class}} extends Analyst
+{
+    /**
+     * Manager class for determining stats cache keys/time to live.
+     *
+     * @var string
+     */
+    public $managerClass = {{hasher}};
+
+    /**
+     * Test.
+     *
+     * @return mixed
+     */
+    public function test($arg)
+    {
+        return $arg;
+    }
+}
