@@ -21,7 +21,7 @@
                 "D3jn\\Vizcache\\VizcacheServiceProvider"
             ],
             "aliases": {
-                "Stats": "D3jn\\Vizcache\\Facades\\Stats"
+                "Vizcache": "D3jn\\Vizcache\\Facades\\Vizcache"
             }
         }
     },
