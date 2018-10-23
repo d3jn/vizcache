@@ -243,11 +243,11 @@ class Vizcache
      */
     protected function resolveAnalyst(string $name): ?Analyst
     {
-        $class = config("stats.analysts.{$name}");
+        $class = config("vizcache.analysts.{$name}");
 
         if (! ($class && class_exists($class))) {
             $e = new AnalystNotFoundException(
-                "Can't find analyst class for '$name'! Check 'analysts' config in <config/stats.php>!",
+                "Can't find analyst class '$class' for '$name'! Check 'analysts' config in <config/vizcache.php> file!",
                 $name
             );
 
