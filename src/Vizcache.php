@@ -8,6 +8,7 @@ use D3jn\Vizcache\Concerns\HasExceptionsHandler;
 use D3jn\Vizcache\Exceptions\AnalystNotFoundException;
 use D3jn\Vizcache\Exceptions\Handler;
 use D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException;
+use D3jn\Vizcache\ClosureStat;
 use Illuminate\Contracts\Foundation\Application;
 
 class Vizcache
@@ -20,15 +21,58 @@ class Vizcache
     protected $app;
 
     /**
+     * Name validator for stat analyst and method names.
+     *
+     * @var \D3jn\Vizcache\Helpers\NameValidator
+     */
+    protected $nameValidator;
+
+    /**
+     * Array of all registered closure-based stats.
+     *
+     * @var array
+     */
+    protected $closureStats = [];
+
+    /**
      * Stats constructor.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \D3jn\Vizcache\Exceptions\Handler        $exceptionsHandler
+     * @param \D3jn\Vizcache\Exceptions\Handler            $exceptionsHandler
+     * @param \D3jn\Vizcache\Helpers\NameValidator         $nameValidator
      */
-    public function __construct(Application $app, Handler $exceptionsHandler)
+    public function __construct(Application $app, Handler $exceptionsHandler, NameValidator $nameValidator)
     {
         $this->app = $app;
         $this->exceptionsHandler = $exceptionsHandler;
+        $this->nameValidator = $nameValidator;
+    }
+
+    /**
+     * Bind closure to unexisting stat name.
+     *
+     * @param  string   $name
+     * @param  \Closure $resolver
+     * @return \D3jn\Vizcache\ClosureStat
+     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
+     */
+    public function bind(string $name, Closure $resolver): ClosureStat
+    {
+        if (! $this->nameValidator->checkMethodName($name)) {
+            throw new InvalidStatNameException(
+                "Name '$name' is not valid method name for closure stat!",
+                $name
+            );
+        }
+
+        $closureStat = app()->make(
+            'D3jn\Vizcache\ClosureStat',
+            compact('name', 'resolver')
+        );
+
+        $this->closureStats[$name] = $closureStat;
+
+        return $closureStat;
     }
 
     /**
