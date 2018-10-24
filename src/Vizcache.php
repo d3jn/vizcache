@@ -152,16 +152,11 @@ class Vizcache
      * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
      * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
-    protected function resolveStat(string $name, $default = null, array $parameters = [])
+    protected function resolveStat(string $name, $default = null, array $parameters = []): Stat
     {
         $extracted = $this->extractAnalystAndMethod($name);
         if (empty($extracted)) {
-            return $this->exceptionsHandler->get(
-                new InvalidStatNameException(
-                    "Can't parse stat name '$name'!",
-                    $name
-                )
-            );
+            throw new InvalidStatNameException("Can't parse stat name '$name'!", $name);
         }
 
         list($analystName, $methodName) = $extracted;
