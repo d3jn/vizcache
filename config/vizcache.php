@@ -67,8 +67,12 @@ return [
     |--------------------------------------------------------------------------
     |
     | If set true then default value will be returned and no exceptions will be
-    | generated when accessing stats that have errors (missing/unresolvable
-    | analysts, unexisting methods and so on).
+    | thrown when accessing stats values (missing/unresolvable analysts,
+    | unexisting methods and so on). Note that such exceptions will still be
+    | reported though.
+    |
+    | Also note that this only applies to Vizcache exceptions in context of
+    | methods that can return default value or use default configuration.
     |
     */
 
