@@ -48,25 +48,27 @@ class Manager
         if ($this->autoHashing || in_array($name, $this->auto)) {
             return $this->state(
                 $this->hasher->hash($arguments),
+                null,
                 null
             );
         }
 
-        return $this->state(null, null);
+        return $this->state(null, null, null);
     }
 
     /**
      * Create stat state instance based on provided parameters.
      *
      * @param  string|null $key
+     * @param  mixed       $cacheStore
      * @param  mixed       $timeToLive
      * @return \D3jn\Vizcache\StatStoringState
      */
-    protected function state(?string $key, $timeToLive = null): StatStoringState
+    protected function state(?string $key, $cacheStore = null, $timeToLive = null): StatStoringState
     {
-        return app()->make('D3jn\Vizcache\StatStoringState', [
-            'key' => $key,
-            'timeToLive' => $timeToLive
-        ]);
+        return app()->make(
+            'D3jn\Vizcache\StatStoringState',
+            compact('key', 'cacheStore', 'timeToLive')
+        );
     }
 }

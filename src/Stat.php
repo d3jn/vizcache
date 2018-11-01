@@ -150,8 +150,12 @@ class Stat
             return;
         }
 
-        $keyName = $this->getNameToStore();
         $repository = $this->resolveCacheRepository();
+        if (! $repository) {
+            return;
+        }
+
+        $keyName = $this->getNameToStore();
 
         $this->putValue(
             $repository,

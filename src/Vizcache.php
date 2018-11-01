@@ -168,6 +168,12 @@ class Vizcache
 
         $configuration = $this->getConfigurationForStat($analystName, $methodName);
 
+        // If analyst resolves cache store we use it's value over configuration one.
+        $cacheStore = $analyst->cacheStore($name, $parameters);
+        if ($cacheStore !== null) {
+            $configuration['cache_store'] = $cacheStore;
+        }
+
         return app()->make(
             'D3jn\Vizcache\Stat',
             compact('analyst', 'configuration', 'analystName', 'methodName', 'parameters')

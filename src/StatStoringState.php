@@ -12,6 +12,13 @@ class StatStoringState
     protected $key;
 
     /**
+     * Cache store to use for stat.
+     *
+     * @var mixed
+     */
+    protected $cacheStore;
+
+    /**
      * Time to live for a stat in cache store.
      *
      * @var mixed
@@ -22,9 +29,10 @@ class StatStoringState
      * StatStoringState's constructor.
      *
      * @param string|null $key
+     * @param mixed       $cacheStore
      * @param mixed       $timeToLive
      */
-    public function __construct(?string $key, $timeToLive = null)
+    public function __construct(?string $key, $cacheStore = null, $timeToLive = null)
     {
         $this->key = $key;
         $this->timeToLive = $timeToLive;
@@ -38,6 +46,16 @@ class StatStoringState
     public function getKey(): ?string
     {
         return $this->key;
+    }
+
+    /**
+     * Get cache store value.
+     *
+     * @return mixed
+     */
+    public function getCacheStore()
+    {
+        return $this->cacheStore;
     }
 
     /**
