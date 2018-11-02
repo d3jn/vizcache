@@ -169,7 +169,7 @@ class Vizcache
         $configuration = $this->getConfigurationForStat($analystName, $methodName);
 
         // If analyst resolves cache store we use it's value over configuration one.
-        $cacheStore = $analyst->cacheStore($name, $parameters);
+        $cacheStore = $analyst->cacheStore($methodName, $parameters);
         if ($cacheStore !== null) {
             $configuration['cache_store'] = $cacheStore;
         }
