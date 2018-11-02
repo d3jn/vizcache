@@ -30,6 +30,6 @@ class {{class}} extends Manager
      */
     public function foo($bar): StatStoringState
     {
-        return $this->state((string) $bar, null);
+        return $this->state((string) $bar, null, null);
     }
 }

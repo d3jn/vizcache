@@ -86,6 +86,20 @@ class Analyst
     }
 
     /**
+     * Get hash for stat by name using it's parameters.
+     *
+     * Returns null if configuration value should be used.
+     *
+     * @param  string $name
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function cacheStore(string $name, array $parameters = [])
+    {
+        return $this->manager->$name(...$parameters)->getCacheStore();
+    }
+
+    /**
      * Get time to live for stat by name using it's parameters.
      *
      * Returns null if configuration value should be used.
