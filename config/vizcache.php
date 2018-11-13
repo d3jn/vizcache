@@ -55,10 +55,10 @@ return [
     | No Caching When Testing
     |--------------------------------------------------------------------------
     |
-    | If set true then stats won't be ever cached when in testing environment.
+    | If set true then stats won't be cached when in testing environment.
     |
     */
 
-    'no_caching_when_testing' => true,
+    'no_caching_when_testing' => false,
 
 ];

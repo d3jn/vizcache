@@ -28,13 +28,11 @@ class Analyst
      */
     public function __construct(?Manager $manager = null)
     {
-        if (! $manager) {
-            if ($this->managerClass) {
-                $this->manager = Container::getInstance()->make($this->managerClass);
-            }
+        if ($this->managerClass) {
+            $this->manager = Container::getInstance()->make($this->managerClass);
+        } else {
+            $this->manager = $manager;
         }
-
-        $this->manager = $manager;
     }
 
     /**
