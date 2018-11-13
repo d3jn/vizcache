@@ -3,33 +3,22 @@
 namespace App\Vizcache\Managers;
 
 use D3jn\Vizcache\Manager;
-use D3jn\Vizcache\StatStoringState;
 
 class {{class}} extends Manager
 {
     /**
-     * Whether to do auto hashing for unexisting methods.
+     * Whether to do auto hashing for stats that doesn't have respective hash
+     * methods.
      *
      * @var bool
      */
     protected $autoHashing = true;
 
     /**
-     * List of unexisting method names to use auto hashing on. If $autoHashing is
-     * set true this value affects nothing.
+     * List of stat names to use auto hashing on if their respective hash methods
+     * are not implemented. If $autoHashing is set true this value changes nothing.
      *
      * @var array
      */
-    protected $auto = [];
-
-    /**
-     * Test.
-     *
-     * @param  mixed $bar
-     * @return \D3jn\Vizcache\StatStoringState
-     */
-    public function foo($bar): StatStoringState
-    {
-        return $this->state((string) $bar, null, null);
-    }
+    protected $autoHashStats = [];
 }

@@ -82,7 +82,7 @@ class Analyst
      */
     public function hash(string $name, array $parameters = []): ?string
     {
-        return $this->manager->$name(...$parameters)->getKey();
+        return $this->manager->{$name . '_hash'}(...$parameters);
     }
 
     /**
@@ -96,7 +96,7 @@ class Analyst
      */
     public function cacheStore(string $name, array $parameters = [])
     {
-        return $this->manager->$name(...$parameters)->getCacheStore();
+        return $this->manager->{$name . '_store'}(...$parameters);
     }
 
     /**
@@ -110,6 +110,6 @@ class Analyst
      */
     public function timeToLive(string $name, array $parameters = [])
     {
-        return $this->manager->$name(...$parameters)->getTimeToLive();
+        return $this->manager->{$name . '_ttl'}(...$parameters);
     }
 }
