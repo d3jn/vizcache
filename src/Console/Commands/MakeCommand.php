@@ -3,6 +3,7 @@
 namespace D3jn\Vizcache\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Container\Container;
 use Illuminate\Filesystem\Filesystem;
 
 abstract class MakeCommand extends Command
@@ -92,7 +93,7 @@ abstract class MakeCommand extends Command
     {
         $plural = ucfirst($this->getPluralType());
 
-        return app_path("Vizcache/$plural/$name.php");
+        return Container::getInstance()->make('path') . DIRECTORY_SEPARATOR . "Vizcache" . DIRECTORY_SEPARATOR . "$plural" . DIRECTORY_SEPARATOR . "$name.php";
     }
 
     /**

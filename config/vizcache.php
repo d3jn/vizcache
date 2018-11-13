@@ -35,7 +35,7 @@ return [
             'only_get_from_cache' => false,
         ],
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Analysts
@@ -60,22 +60,5 @@ return [
     */
 
     'no_caching_when_testing' => true,
-
-    /**
-    |--------------------------------------------------------------------------
-    | Silent Mode
-    |--------------------------------------------------------------------------
-    |
-    | If set true then default value will be returned and no exceptions will be
-    | thrown when accessing stats values (missing/unresolvable analysts,
-    | unexisting methods and so on). Note that such exceptions will still be
-    | reported though.
-    |
-    | Also note that this only applies to Vizcache exceptions in context of
-    | methods that can return default value or use default configuration.
-    |
-    */
-
-    'silent_mode' => false,
 
 ];
