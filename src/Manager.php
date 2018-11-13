@@ -13,7 +13,7 @@ class Manager
 
     /**
      * List of unexisting method names to use auto hashing on. If $autoHashing is
-     * set true this value affects nothing.
+     * set true this value changes nothing.
      *
      * @var array
      */
