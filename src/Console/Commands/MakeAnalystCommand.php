@@ -16,7 +16,7 @@ class MakeAnalystCommand extends MakeCommand
      *
      * @var string
      */
-    protected $additionalSingature = ' {--manager}';
+    protected $additionalSignature = ' {--manager}';
 
     /**
      * Manager class to link to the analyst.

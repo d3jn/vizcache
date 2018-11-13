@@ -3,7 +3,7 @@
 namespace D3jn\Vizcache;
 
 use D3jn\Vizcache\Exceptions\AnalystMethodNotFoundException;
-use D3jn\Vizcache\Exceptions\Handler;
+use Illuminate\Container\Container;
 
 class Analyst
 {
@@ -22,27 +22,19 @@ class Analyst
     protected $manager = null;
 
     /**
-     * Handler for stats exceptions.
-     *
-     * @var \D3jn\Vizcache\Exceptions\Handler
-     */
-    protected $exceptionsHandler;
-
-    /**
      * Analyst's constructor.
      *
-     * @param \D3jn\Vizcache\Exceptions\Handler $exceptionsHandler
      * @param \D3jn\Vizcache\Manager $manager
      */
-    public function __construct(Handler $exceptionsHandler, ?Manager $manager = null)
+    public function __construct(?Manager $manager = null)
     {
-        $this->exceptionsHandler = $exceptionsHandler;
-
-        if ($this->managerClass) {
-            $this->manager = app()->make($this->managerClass);
-        } else {
-            $this->manager = $manager;
+        if (! $manager) {
+            if ($this->managerClass) {
+                $this->manager = Container::getInstance()->make($this->managerClass);
+            }
         }
+
+        $this->manager = $manager;
     }
 
     /**
@@ -55,20 +47,17 @@ class Analyst
      * @param  string $name
      * @param  array  $parameters
      * @return mixed|null
-     * @throws \D3jn\Vizcache\Exceptions\AnalystMethodNotFoundException
      */
     public function get(string $name, array $parameters = [])
     {
-        if (method_exists($this, $name)) {
-            return $this->$name(...$parameters);
+        if (! method_exists($this, $name)) {
+            throw new AnalystMethodNotFoundException(
+                sprintf("Analyst class doesn't have '%s' method!", $name),
+                $this
+            );
         }
 
-        $e = new AnalystMethodNotFoundException(
-            "Analyst class doesn't have '$name' method!",
-            $this
-        );
-
-        return $this->exceptionsHandler->get($e);
+        return $this->$name(...$parameters);
     }
 
     /**
@@ -82,7 +71,7 @@ class Analyst
      */
     public function hash(string $name, array $parameters = []): ?string
     {
-        return $this->manager->{$name . '_hash'}(...$parameters);
+        return optional($this->manager)->{$name . '_hash'}(...$parameters);
     }
 
     /**
@@ -96,7 +85,7 @@ class Analyst
      */
     public function cacheStore(string $name, array $parameters = [])
     {
-        return $this->manager->{$name . '_store'}(...$parameters);
+        return optional($this->manager)->{$name . '_store'}(...$parameters);
     }
 
     /**
@@ -110,6 +99,6 @@ class Analyst
      */
     public function timeToLive(string $name, array $parameters = [])
     {
-        return $this->manager->{$name . '_ttl'}(...$parameters);
+        return optional($this->manager)->{$name . '_ttl'}(...$parameters);
     }
 }

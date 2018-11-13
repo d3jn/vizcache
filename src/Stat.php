@@ -104,13 +104,15 @@ class Stat
      * Delete all cached values of this stat if cache store supports it.
      *
      * @return void
-     * @throws \D3jn\Vizcache\Exceptions\StatCantBeFlushedException
      */
     public function flush()
     {
         $repository = $this->resolveCacheRepository();
         if (! $repository->getStore() instanceof TaggableStore) {
-            throw new StatCantBeFlushedException("Can't flush this stat because it's configured cache store doesn't support tagging.", $this);
+            throw new StatCantBeFlushedException(
+                'Can\'t flush stat because it\'s configured cache store doesn\'t support tagging!',
+                $this
+            );
         }
 
         $repository->tags($this->getTags())->flush();
@@ -313,8 +315,8 @@ class Stat
     {
         // If caching is disabled for testing environment then we allow it only
         // for any environment other than 'testing'.
-        if (config('vizcache.no_caching_when_testing', true)) {
-            return ! App::environment('testing');
+        if (config('vizcache.no_caching_when_testing', false)) {
+            return false;
         }
 
         return true;
