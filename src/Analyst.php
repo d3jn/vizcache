@@ -22,6 +22,13 @@ class Analyst
     protected $manager = null;
 
     /**
+     * Memoized values of already resolved configurations.
+     *
+     * @var array
+     */
+    protected $memoized = [];
+
+    /**
      * Analyst's constructor.
      *
      * @param \D3jn\Vizcache\Manager $manager
@@ -69,7 +76,9 @@ class Analyst
      */
     public function hash(string $name, array $parameters = []): ?string
     {
-        return optional($this->manager)->{$name . '_hash'}(...$parameters);
+        return $this->memoize('hash', function () use ($name, $parameters) {
+            return optional($this->manager)->{$name . '_hash'}(...$parameters);
+        });
     }
 
     /**
@@ -83,7 +92,9 @@ class Analyst
      */
     public function cacheStore(string $name, array $parameters = [])
     {
-        return optional($this->manager)->{$name . '_store'}(...$parameters);
+        return $this->memoize('cacheStore', function () use ($name, $parameters) {
+            return optional($this->manager)->{$name . '_store'}(...$parameters);
+        });
     }
 
     /**
@@ -97,6 +108,24 @@ class Analyst
      */
     public function timeToLive(string $name, array $parameters = [])
     {
-        return optional($this->manager)->{$name . '_ttl'}(...$parameters);
+        return $this->memoize('timeToLive', function () use ($name, $parameters) {
+            return optional($this->manager)->{$name . '_ttl'}(...$parameters);
+        });
+    }
+
+    /**
+     * Get memoized value.
+     *
+     * @param  string   $name
+     * @param  \Closure $value
+     * @return mixed
+     */
+    protected function memoize($name, \Closure $value)
+    {
+        if (! isset($this->memoized[$name])) {
+            $this->memoized[$name] = $value();
+        }
+
+        return $this->memoized[$name];
     }
 }
