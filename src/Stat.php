@@ -6,10 +6,10 @@ use Closure;
 use D3jn\Vizcache\Concerns\HasAnalystName;
 use D3jn\Vizcache\Exceptions\StatCantBeFlushedException;
 use Illuminate\Cache\TaggableStore;
-use Illuminate\Container\Container;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 
 class Stat
 {
@@ -327,8 +327,8 @@ class Stat
     {
         // If caching is disabled for testing environment then we allow it
         // for every environment other than 'testing'.
-        if (Container::getInstance()->make('config')->get('vizcache.no_caching_when_testing', false)) {
-            return ! Container::getInstance()->environment('testing');
+        if (Config::get('vizcache.no_caching_when_testing', false)) {
+            return ! App::environment('testing');
         }
 
         return true;

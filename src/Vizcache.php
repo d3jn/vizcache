@@ -6,8 +6,9 @@ use Closure;
 use D3jn\Vizcache\Analyst;
 use D3jn\Vizcache\Exceptions\AnalystNotFoundException;
 use D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException;
-use Illuminate\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 class Vizcache
@@ -116,7 +117,7 @@ class Vizcache
      */
     public function __call(string $name, array $arguments)
     {
-        return Container::getInstance()->make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
+        return App::make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
     }
 
     /**
@@ -149,7 +150,7 @@ class Vizcache
             $configuration['cache_store'] = $cacheStore;
         }
 
-        return Container::getInstance()->make(
+        return App::make(
             'D3jn\Vizcache\Stat',
             compact('analyst', 'configuration', 'analystName', 'methodName', 'parameters')
         );
@@ -186,7 +187,7 @@ class Vizcache
      */
     protected function getConfiguration(): array
     {
-        $configuration = Container::getInstance()->make('config')->get('vizcache.configuration');
+        $configuration = Config::get('vizcache.configuration');
 
         // Sorting configuration map by key length.
         $keys = array_map('strlen', array_keys($configuration));
@@ -217,7 +218,7 @@ class Vizcache
      */
     protected function resolveAnalyst(string $name): ?Analyst
     {
-        $class = Container::getInstance()->make('config')->get("vizcache.analysts.{$name}");
+        $class = Config::get("vizcache.analysts.{$name}");
 
         if (! ($class && class_exists($class))) {
             throw new AnalystNotFoundException(sprintf(
@@ -227,7 +228,7 @@ class Vizcache
             ), $name);
         }
 
-        $analyst = Container::getInstance()->make($class);
+        $analyst = App::make($class);
         if (! $analyst instanceof Analyst) {
             throw new InvalidAnalystInstanceException(sprintf(
                 '"%s" analyst class must be instance of D3jn\Vizcache\Analyst!',
