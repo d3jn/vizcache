@@ -4,16 +4,14 @@ namespace D3jn\Vizcache;
 
 use Closure;
 use D3jn\Vizcache\Analyst;
-use D3jn\Vizcache\Concerns\HasExceptionsHandler;
 use D3jn\Vizcache\Exceptions\AnalystNotFoundException;
-use D3jn\Vizcache\Exceptions\Handler;
 use D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Str;
 
 class Vizcache
 {
-    use HasExceptionsHandler;
-
     /**
      * @var \Illuminate\Contracts\Foundation\Application $app
      */
@@ -23,12 +21,10 @@ class Vizcache
      * Stats constructor.
      *
      * @param \Illuminate\Contracts\Foundation\Application $app
-     * @param \D3jn\Vizcache\Exceptions\Handler        $exceptionsHandler
      */
-    public function __construct(Application $app, Handler $exceptionsHandler)
+    public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->exceptionsHandler = $exceptionsHandler;
     }
 
     /**
@@ -38,9 +34,6 @@ class Vizcache
      * @param  mixed|null $default
      * @param  array      $parameters
      * @return mixed
-     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     public function get(string $name, $default = null, array $parameters = [])
     {
@@ -57,9 +50,6 @@ class Vizcache
      * @param  mixed|null $default
      * @param  array      $parameters
      * @return mixed
-     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     public function compute(string $name, $default = null, array $parameters = [])
     {
@@ -75,9 +65,6 @@ class Vizcache
      * @param  mixed|null $default
      * @param  array      $parameters
      * @return void
-     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     public function forget(string $name, array $parameters = [])
     {
@@ -89,9 +76,6 @@ class Vizcache
      *
      * @param  string $name
      * @return void
-     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     public function flush(string $name)
     {
@@ -104,9 +88,6 @@ class Vizcache
      * @param  string $name
      * @param  array  $parameters
      * @return void
-     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     public function touch(string $name, array $parameters = []): void
     {
@@ -120,9 +101,6 @@ class Vizcache
      * @param  mixed|null $default
      * @param  array      $parameters
      * @return void
-     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     public function update(string $name, $default = null, array $parameters = [])
     {
@@ -138,7 +116,7 @@ class Vizcache
      */
     public function __call(string $name, array $arguments)
     {
-        return app()->make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
+        return Container::getInstance()->make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
     }
 
     /**
@@ -148,15 +126,12 @@ class Vizcache
      * @param  mixed|null $default
      * @param  array      $parameters
      * @return \D3jn\Vizcache\Stat
-     * @throws \D3jn\Vizcache\Exceptions\InvalidStatNameException
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     protected function resolveStat(string $name, $default = null, array $parameters = []): Stat
     {
         $extracted = $this->extractAnalystAndMethod($name);
         if (empty($extracted)) {
-            throw new InvalidStatNameException("Can't parse stat name '$name'!", $name);
+            throw new InvalidStatNameException(sprintf('Can\'t parse stat name "%s"!', $name), $name);
         }
 
         list($analystName, $methodName) = $extracted;
@@ -174,7 +149,7 @@ class Vizcache
             $configuration['cache_store'] = $cacheStore;
         }
 
-        return app()->make(
+        return Container::getInstance()->make(
             'D3jn\Vizcache\Stat',
             compact('analyst', 'configuration', 'analystName', 'methodName', 'parameters')
         );
@@ -193,10 +168,10 @@ class Vizcache
     {
         // Starting with default configuration.
         $result = $this->getDefaultConfigurationForStat();
-        
+
         $stat = "$analystName.$methodName";
         foreach ($this->getConfiguration() as $mask => $configuration) {
-            if (str_is($mask, $stat)) {
+            if (Str::is($mask, $stat)) {
                 $result = array_merge($result, $configuration);
             }
         }
@@ -239,30 +214,25 @@ class Vizcache
      *
      * @param  string $name
      * @return \D3jn\Vizcache\Analyst|null
-     * @throws \D3jn\Vizcache\Exceptions\AnalystNotFoundException
-     * @throws \D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException
      */
     protected function resolveAnalyst(string $name): ?Analyst
     {
         $class = config("vizcache.analysts.{$name}");
 
         if (! ($class && class_exists($class))) {
-            $e = new AnalystNotFoundException(
-                "Can't find analyst class '$class' for '$name'! Check 'analysts' config in <config/vizcache.php> file!",
+            throw new AnalystNotFoundException(sprintf(
+                'Can\'t find analyst class %s for "%s"! Check \'analysts\' configuration key in <config/vizcache.php> file!',
+                $class,
                 $name
-            );
-
-            return $this->exceptionsHandler->get($e);
+            ), $name);
         }
 
-        $analyst = app()->make($class);
+        $analyst = Container::getInstance()->make($class);
         if (! $analyst instanceof Analyst) {
-            $e = new InvalidAnalystInstanceException(
-                "'$name' analyst class must be instance of D3jn\Vizcache\Analyst!",
+            throw new InvalidAnalystInstanceException(sprintf(
+                '"%s" analyst class must be instance of D3jn\Vizcache\Analyst!',
                 $name
-            );
-
-            return $this->exceptionsHandler->get($e);
+            ), $name);
         }
 
         return $analyst;
@@ -285,21 +255,5 @@ class Vizcache
         }
 
         return null;
-    }
-
-    /**
-     * Return true if caching is allowed regardless of stat context and false otherwise.
-     *
-     * @return bool
-     */
-    protected function isCachingAllowed(): bool
-    {
-        // If caching is disabled for testing environment then we allow it only
-        // for any environment other than 'testing'.
-        if (config('vizcache.no_caching_when_testing', false)) {
-            return ! App::environment('testing');
-        }
-
-        return true;
     }
 }

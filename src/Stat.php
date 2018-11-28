@@ -6,6 +6,7 @@ use Closure;
 use D3jn\Vizcache\Concerns\HasAnalystName;
 use D3jn\Vizcache\Exceptions\StatCantBeFlushedException;
 use Illuminate\Cache\TaggableStore;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
@@ -72,7 +73,7 @@ class Stat
      */
     public function value()
     {
-        if ($this->configuration['cache_store'] && $this->isCachingAllowed()) {
+        if ($this->getCacheStore() && $this->isCachingAllowed()) {
             return $this->getCachedValue();
         }
 
@@ -104,13 +105,15 @@ class Stat
      * Delete all cached values of this stat if cache store supports it.
      *
      * @return void
-     * @throws \D3jn\Vizcache\Exceptions\StatCantBeFlushedException
      */
     public function flush()
     {
         $repository = $this->resolveCacheRepository();
         if (! $repository->getStore() instanceof TaggableStore) {
-            throw new StatCantBeFlushedException("Can't flush this stat because it's configured cache store doesn't support tagging.", $this);
+            throw new StatCantBeFlushedException(
+                'Can\'t flush stat because it\'s configured cache store doesn\'t support tagging!',
+                $this
+            );
         }
 
         $repository->tags($this->getTags())->flush();
@@ -123,7 +126,7 @@ class Stat
      */
     public function touch()
     {
-        if ($this->configuration['cache_store'] && $this->isCachingAllowed()) {
+        if ($this->getCacheStore() && $this->isCachingAllowed()) {
             $repository = $this->resolveCacheRepository();
             $keyName = $this->getNameToStore();
 
@@ -146,7 +149,7 @@ class Stat
      */
     public function update(): void
     {
-        if (! $this->configuration['cache_store']) {
+        if (! $this->getCacheStore()) {
             return;
         }
 
@@ -171,19 +174,30 @@ class Stat
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->analystName . '@' . $this->methodName;
     }
 
     /**
-     * Get cache repository instance with proper store for this stat.
+     * Get cache store name to use for this stat.
+     *
+     * @return string
+     */
+    protected function getCacheStore(): string
+    {
+        return $this->analyst->cacheStore($this->methodName, $this->parameters)
+            ?: $this->configuration['cache_store'];
+    }
+
+    /**
+     * Resolve cache repository instance with proper store for this stat.
      *
      * @return \Illuminate\Contracts\Cache\Repository
      */
     protected function resolveCacheRepository(): Repository
     {
-        return Cache::store($this->configuration['cache_store']);
+        return Cache::store($this->getCacheStore());
     }
 
     /**
@@ -194,7 +208,7 @@ class Stat
     protected function getCachedValue()
     {
         $keyName = $this->getNameToStore();
-        $repository = Cache::store($this->configuration['cache_store']);
+        $repository = Cache::store($this->getCacheStore());
 
         if ($this->configuration['only_get_from_cache']) {
             if ($repository->has($keyName)) {
@@ -311,10 +325,10 @@ class Stat
      */
     protected function isCachingAllowed(): bool
     {
-        // If caching is disabled for testing environment then we allow it only
-        // for any environment other than 'testing'.
-        if (config('vizcache.no_caching_when_testing', true)) {
-            return ! App::environment('testing');
+        // If caching is disabled for testing environment then we allow it
+        // for every environment other than 'testing'.
+        if (config('vizcache.no_caching_when_testing', false)) {
+            return ! Container::getInstance()->environment('testing');
         }
 
         return true;
