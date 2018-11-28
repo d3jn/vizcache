@@ -16,7 +16,7 @@ class VizcacheServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/../config/vizcache.php' => config_path('vizcache.php'),
+            __DIR__ . '/../config/vizcache.php' => $this->app['path.config'] . DIRECTORY_SEPARATOR . 'vizcache.php'
         ]);
 
         if ($this->app->runningInConsole()) {
