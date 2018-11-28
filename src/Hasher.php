@@ -29,6 +29,6 @@ class Hasher
      */
     public function hash(array $arguments): string
     {
-        return md5(serialize($arguments));
+        return $this->separator . md5(serialize($arguments));
     }
 }
