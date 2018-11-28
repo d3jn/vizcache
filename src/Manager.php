@@ -71,4 +71,26 @@ class Manager
         // resolution logic exists.
         return null;
     }
+
+    /**
+     * Set auto hashing option.
+     *
+     * @param  bool $autoHashing
+     * @return void
+     */
+    public function setAutoHashing(bool $autoHashing): void
+    {
+        $this->autoHashing = $autoHashing;
+    }
+
+    /**
+     * Set auto hashing option.
+     *
+     * @param  array $autoHashStats
+     * @return void
+     */
+    public function setAutoHashStats(array $autoHashStats): void
+    {
+        $this->autoHashStats = $autoHashStats;
+    }
 }
