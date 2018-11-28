@@ -186,7 +186,7 @@ class Vizcache
      */
     protected function getConfiguration(): array
     {
-        $configuration = config('vizcache.configuration');
+        $configuration = Container::getInstance()->make('config')->get('vizcache.configuration');
 
         // Sorting configuration map by key length.
         $keys = array_map('strlen', array_keys($configuration));
@@ -217,7 +217,7 @@ class Vizcache
      */
     protected function resolveAnalyst(string $name): ?Analyst
     {
-        $class = config("vizcache.analysts.{$name}");
+        $class = Container::getInstance()->make('config')->get("vizcache.analysts.{$name}");
 
         if (! ($class && class_exists($class))) {
             throw new AnalystNotFoundException(sprintf(

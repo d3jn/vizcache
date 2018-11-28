@@ -327,7 +327,7 @@ class Stat
     {
         // If caching is disabled for testing environment then we allow it
         // for every environment other than 'testing'.
-        if (config('vizcache.no_caching_when_testing', false)) {
+        if (Container::getInstance()->make('config')->get('vizcache.no_caching_when_testing', false)) {
             return ! Container::getInstance()->environment('testing');
         }
 
