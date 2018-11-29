@@ -2,7 +2,9 @@
 
 namespace D3jn\Vizcache\Tests\Unit;
 
+use Closure;
 use D3jn\Vizcache\Stat;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -40,19 +42,130 @@ class StatTest extends TestCase
 
     public function testValueWhenCachingIsEnabled()
     {
-        // TODO
+        Config::shouldReceive('get')
+            ->once()
+            ->with('vizcache.no_caching_when_testing', false)
+            ->andReturn(false);
+
+        $cacheStore = Mockery::mock('Illuminate\Contracts\Cache\Store');
+
+        $cacheRepository = Mockery::mock('Illuminate\Contracts\Cache\Repository');
+        $cacheRepository->shouldReceive('getStore')
+            ->once()
+            ->andReturn($cacheStore);
+        $cacheRepository->shouldReceive('remember')
+            ->once()
+            ->with('_TestAnalyst_testStat@key_name', 1, Mockery::on(function ($argument) {
+                return $argument instanceof Closure;
+            }))
+            ->andReturn('result');
+
+        Cache::shouldReceive('store')
+            ->once()
+            ->with('existing_store')
+            ->andReturn($cacheRepository);
+
+        $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
+        $analyst->shouldReceive('timeToLive')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn(null);
+        $analyst->shouldReceive('cacheStore')
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('existing_store');
+        $analyst->shouldReceive('hash')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('key_name');
+
+        $analyst->shouldNotReceive('get');
+
+        $stat = new Stat(
+            $analyst,
+            ['cache_store' => 'existing_store', 'only_get_from_cache' => false, 'time_to_live' => 1],
+            'TestAnalyst',
+            'testStat',
+            ['foo' => 'bar']
+        );
+
+        $this->assertSame('result', $stat->value());
     }
 
     public function testValueWhenOnlyGetFromCacheIsEnabled()
     {
-        // TODO
+        $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
+        $analyst->shouldReceive('cacheStore')
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('existing_store');
+        $analyst->shouldReceive('hash')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('key_name');
+
+        $cacheRepository = Mockery::mock('Illuminate\Contracts\Cache\Repository');
+        $cacheRepository->shouldReceive('has')
+            ->once()
+            ->with('_TestAnalyst_testStat@key_name')
+            ->andReturn(true);
+        $cacheRepository->shouldReceive('get')
+            ->once()
+            ->andReturn('result');
+
+        Cache::shouldReceive('store')
+            ->once()
+            ->with('existing_store')
+            ->andReturn($cacheRepository);
+
+        $stat = new Stat(
+            $analyst,
+            ['cache_store' => 'existing_store', 'only_get_from_cache' => true, 'time_to_live' => 1],
+            'TestAnalyst',
+            'testStat',
+            ['foo' => 'bar']
+        );
+
+        $this->assertSame('result', $stat->value());
+    }
+
+    public function testValueWhenOnlyGetFromCacheIsEnabledButValueDoesntExistInCache()
+    {
+        $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
+        $analyst->shouldReceive('cacheStore')
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('existing_store');
+        $analyst->shouldReceive('hash')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('key_name');
+
+        $cacheRepository = Mockery::mock('Illuminate\Contracts\Cache\Repository');
+        $cacheRepository->shouldReceive('has')
+            ->once()
+            ->with('_TestAnalyst_testStat@key_name')
+            ->andReturn(false);
+
+        $cacheRepository->shouldNotReceive('get');
+
+        Cache::shouldReceive('store')
+            ->once()
+            ->with('existing_store')
+            ->andReturn($cacheRepository);
+
+        $stat = new Stat(
+            $analyst,
+            ['cache_store' => 'existing_store', 'only_get_from_cache' => true, 'time_to_live' => 1],
+            'TestAnalyst',
+            'testStat',
+            ['foo' => 'bar']
+        );
+
+        $this->assertNull($stat->value());
     }
 
     public function testComputeIgnoresCacheStore()
     {
         $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
         $analyst->shouldReceive('cacheStore')
-            ->once()
             ->with('testStat', ['foo' => 'bar'])
             ->andReturn(false);
         $analyst->shouldReceive('get')
@@ -85,22 +198,116 @@ class StatTest extends TestCase
         $this->assertSame('TestAnalyst@testStat', $stat->getName());
     }
 
-    public function testStatUpdate()
+    public function testUpdate()
+    {
+        $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
+        $analyst->shouldReceive('cacheStore')
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('existing_store');
+        $analyst->shouldReceive('hash')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('key_name');
+        $analyst->shouldReceive('timeToLive')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn(null);
+        $analyst->shouldReceive('get')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('result');
+
+        $cacheStore = Mockery::mock('Illuminate\Contracts\Cache\Store');
+
+        $cacheRepository = Mockery::mock('Illuminate\Contracts\Cache\Repository');
+        $cacheRepository->shouldReceive('getStore')
+            ->once()
+            ->andReturn($cacheStore);
+        $cacheRepository->shouldReceive('put')
+            ->once()
+            ->with('_TestAnalyst_testStat@key_name', 'result', 1);
+
+        Cache::shouldReceive('store')
+            ->once()
+            ->with('existing_store')
+            ->andReturn($cacheRepository);
+
+        $stat = new Stat(
+            $analyst,
+            ['cache_store' => 'existing_store', 'only_get_from_cache' => false, 'time_to_live' => 1],
+            'TestAnalyst',
+            'testStat',
+            ['foo' => 'bar']
+        );
+
+        $stat->update();
+        $this->assertTrue(true);
+    }
+
+    public function testTouch()
     {
         // TODO
     }
 
-    public function testStatTouch()
+    public function testFlushWorksForNotTaggableStores()
     {
-        // TODO
+        $cacheStore = Mockery::mock('Illuminate\Contracts\Cache\Store, Illuminate\Cache\TaggableStore');
+
+        $taggedCache = Mockery::mock('Illuminate\Cache\TaggedCache');
+        $taggedCache->shouldReceive('flush')->once();
+
+        $cacheRepository = Mockery::mock('Illuminate\Contracts\Cache\Repository');
+        $cacheRepository->shouldReceive('getStore')
+            ->once()
+            ->andReturn($cacheStore);
+        $cacheRepository->shouldReceive('tags')
+            ->once()
+            ->with(['TestAnalyst', 'testStat'])
+            ->andReturn($taggedCache);
+
+        Cache::shouldReceive('store')
+            ->once()
+            ->with('existing_store')
+            ->andReturn($cacheRepository);
+
+        $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
+        $analyst->shouldReceive('cacheStore')
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('existing_store');
+
+        $stat = new Stat(
+            $analyst,
+            ['cache_store' => 'existing_store', 'only_get_from_cache' => false, 'time_to_live' => 1],
+            'TestAnalyst',
+            'testStat',
+            ['foo' => 'bar']
+        );
+
+        $stat->flush();
+        $this->assertTrue(true);
     }
 
-    public function testStatFlush()
+    public function testFlushDoesntWorkForNotTaggableStores()
     {
-        // TODO
+        $this->expectException('D3jn\Vizcache\Exceptions\StatCantBeFlushedException');
+
+        $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
+        $analyst->shouldReceive('cacheStore')
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('existing_store');
+
+        $stat = new Stat(
+            $analyst,
+            ['cache_store' => 'existing_store', 'only_get_from_cache' => false, 'time_to_live' => 1],
+            'TestAnalyst',
+            'testStat',
+            ['foo' => 'bar']
+        );
+
+        $stat->flush();
     }
 
-    public function testStatForget()
+    public function testForget()
     {
         // TODO
     }
