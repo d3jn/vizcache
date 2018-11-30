@@ -94,9 +94,9 @@ class Stat
     /**
      * Forget stat value if cached.
      *
-     * @return mixed
+     * @return void
      */
-    public function forget()
+    public function forget(): void
     {
         $this->resolveCacheRepository()->forget($this->getNameToStore());
     }
@@ -106,7 +106,7 @@ class Stat
      *
      * @return void
      */
-    public function flush()
+    public function flush(): void
     {
         $repository = $this->resolveCacheRepository();
         if (! $repository->getStore() instanceof TaggableStore) {
@@ -122,17 +122,17 @@ class Stat
     /**
      * Cache stat value if it's not cached yet.
      *
-     * @return mixed
+     * @return void
      */
-    public function touch()
+    public function touch(): void
     {
         if ($this->getCacheStore() && $this->isCachingAllowed()) {
             $repository = $this->resolveCacheRepository();
             $keyName = $this->getNameToStore();
 
             if (! $repository->has($keyName)) {
-                $this->resolveCacheRepository()->put(
-                    $this->getNameToStore(),
+                $repository->put(
+                    $keyName,
                     $this->analyst->get($this->methodName, $this->parameters),
                     $this->getTimeToLive()
                 );
