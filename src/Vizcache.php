@@ -67,7 +67,7 @@ class Vizcache
      * @param  array      $parameters
      * @return void
      */
-    public function forget(string $name, array $parameters = [])
+    public function forget(string $name, array $parameters = []): void
     {
         $this->resolveStat($name, null, $parameters)->forget();
     }
@@ -78,7 +78,7 @@ class Vizcache
      * @param  string $name
      * @return void
      */
-    public function flush(string $name)
+    public function flush(string $name): void
     {
         $this->resolveStat($name, null, [])->flush();
     }
@@ -103,7 +103,7 @@ class Vizcache
      * @param  array      $parameters
      * @return void
      */
-    public function update(string $name, $default = null, array $parameters = [])
+    public function update(string $name, $default = null, array $parameters = []): void
     {
         $this->resolveStat($name, $default, $parameters)->update();
     }
