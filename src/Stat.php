@@ -6,10 +6,10 @@ use Closure;
 use D3jn\Vizcache\Concerns\HasAnalystName;
 use D3jn\Vizcache\Exceptions\StatCantBeFlushedException;
 use Illuminate\Cache\TaggableStore;
-use Illuminate\Container\Container;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 
 class Stat
 {
@@ -94,9 +94,9 @@ class Stat
     /**
      * Forget stat value if cached.
      *
-     * @return mixed
+     * @return void
      */
-    public function forget()
+    public function forget(): void
     {
         $this->resolveCacheRepository()->forget($this->getNameToStore());
     }
@@ -106,7 +106,7 @@ class Stat
      *
      * @return void
      */
-    public function flush()
+    public function flush(): void
     {
         $repository = $this->resolveCacheRepository();
         if (! $repository->getStore() instanceof TaggableStore) {
@@ -122,17 +122,17 @@ class Stat
     /**
      * Cache stat value if it's not cached yet.
      *
-     * @return mixed
+     * @return void
      */
-    public function touch()
+    public function touch(): void
     {
         if ($this->getCacheStore() && $this->isCachingAllowed()) {
             $repository = $this->resolveCacheRepository();
             $keyName = $this->getNameToStore();
 
             if (! $repository->has($keyName)) {
-                $this->resolveCacheRepository()->put(
-                    $this->getNameToStore(),
+                $repository->put(
+                    $keyName,
                     $this->analyst->get($this->methodName, $this->parameters),
                     $this->getTimeToLive()
                 );
@@ -327,8 +327,8 @@ class Stat
     {
         // If caching is disabled for testing environment then we allow it
         // for every environment other than 'testing'.
-        if (Container::getInstance()->make('config')->get('vizcache.no_caching_when_testing', false)) {
-            return ! Container::getInstance()->environment('testing');
+        if (Config::get('vizcache.no_caching_when_testing', false)) {
+            return ! App::environment('testing');
         }
 
         return true;

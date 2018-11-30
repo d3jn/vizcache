@@ -6,8 +6,8 @@ use Closure;
 use D3jn\Vizcache\Analyst;
 use D3jn\Vizcache\Exceptions\AnalystNotFoundException;
 use D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException;
-use Illuminate\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 class Vizcache
@@ -66,7 +66,7 @@ class Vizcache
      * @param  array      $parameters
      * @return void
      */
-    public function forget(string $name, array $parameters = [])
+    public function forget(string $name, array $parameters = []): void
     {
         $this->resolveStat($name, null, $parameters)->forget();
     }
@@ -77,7 +77,7 @@ class Vizcache
      * @param  string $name
      * @return void
      */
-    public function flush(string $name)
+    public function flush(string $name): void
     {
         $this->resolveStat($name, null, [])->flush();
     }
@@ -102,9 +102,23 @@ class Vizcache
      * @param  array      $parameters
      * @return void
      */
-    public function update(string $name, $default = null, array $parameters = [])
+    public function update(string $name, $default = null, array $parameters = []): void
     {
         $this->resolveStat($name, $default, $parameters)->update();
+    }
+
+    /**
+     * Get array of default configuration for stats.
+     *
+     * @return array
+     */
+    public function getDefaultConfigurationForStat(): array
+    {
+        return [
+            'cache_store' => false,
+            'time_to_live' => 60,
+            'only_get_from_cache' => false
+        ];
     }
 
     /**
@@ -112,11 +126,11 @@ class Vizcache
      *
      * @param  string $name
      * @param  array  $arguments
-     * @return mixed
+     * @return \D3jn\Vizcache\Helpers\FakeAnalyst
      */
     public function __call(string $name, array $arguments)
     {
-        return Container::getInstance()->make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
+        return $this->app->make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
     }
 
     /**
@@ -149,7 +163,7 @@ class Vizcache
             $configuration['cache_store'] = $cacheStore;
         }
 
-        return Container::getInstance()->make(
+        return $this->app->make(
             'D3jn\Vizcache\Stat',
             compact('analyst', 'configuration', 'analystName', 'methodName', 'parameters')
         );
@@ -186,27 +200,13 @@ class Vizcache
      */
     protected function getConfiguration(): array
     {
-        $configuration = Container::getInstance()->make('config')->get('vizcache.configuration');
+        $configuration = Config::get('vizcache.configuration');
 
         // Sorting configuration map by key length.
         $keys = array_map('strlen', array_keys($configuration));
         array_multisort($keys, SORT_ASC, $configuration);
 
         return $configuration;
-    }
-
-    /**
-     * Get array of default configuration for stats.
-     *
-     * @return array
-     */
-    protected function getDefaultConfigurationForStat(): array
-    {
-        return [
-            'cache_store' => false,
-            'time_to_live' => 60,
-            'only_get_from_cache' => false
-        ];
     }
 
     /**
@@ -217,7 +217,7 @@ class Vizcache
      */
     protected function resolveAnalyst(string $name): ?Analyst
     {
-        $class = Container::getInstance()->make('config')->get("vizcache.analysts.{$name}");
+        $class = Config::get("vizcache.analysts.{$name}");
 
         if (! ($class && class_exists($class))) {
             throw new AnalystNotFoundException(sprintf(
@@ -227,7 +227,7 @@ class Vizcache
             ), $name);
         }
 
-        $analyst = Container::getInstance()->make($class);
+        $analyst = $this->app->make($class);
         if (! $analyst instanceof Analyst) {
             throw new InvalidAnalystInstanceException(sprintf(
                 '"%s" analyst class must be instance of D3jn\Vizcache\Analyst!',

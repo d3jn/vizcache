@@ -24,7 +24,7 @@ class StatValue
         $this->statName = $statName;
         $this->parameters = $parameters;
     }
-    
+
     /**
      * Get stat value.
      *
@@ -50,11 +50,11 @@ class StatValue
      * Update cached value for stat (and renew it's time to live).
      *
      * @param  mixed $default
-     * @return mixed
+     * @return void
      */
-    public function update($default = null)
+    public function update($default = null): void
     {
-        return Vizcache::update($this->statName, $default, $this->parameters);
+        Vizcache::update($this->statName, $default, $this->parameters);
     }
 
     /**

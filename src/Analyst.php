@@ -3,7 +3,7 @@
 namespace D3jn\Vizcache;
 
 use D3jn\Vizcache\Exceptions\AnalystMethodNotFoundException;
-use Illuminate\Container\Container;
+use Illuminate\Support\Facades\App;
 
 class Analyst
 {
@@ -36,7 +36,7 @@ class Analyst
     public function __construct(?Manager $manager = null)
     {
         if ($this->managerClass) {
-            $this->manager = Container::getInstance()->make($this->managerClass);
+            $this->manager = App::make($this->managerClass);
         } else {
             $this->manager = $manager;
         }

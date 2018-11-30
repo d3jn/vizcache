@@ -3,7 +3,7 @@
 namespace D3jn\Vizcache\Helpers;
 
 use D3jn\Vizcache\Facades\Vizcache;
-use Illuminate\Container\Container;
+use Illuminate\Support\Facades\App;
 
 class FakeAnalyst
 {
@@ -33,7 +33,7 @@ class FakeAnalyst
      */
     public function __call(string $name, array $arguments)
     {
-        return Container::getInstance()->make(
+        return App::make(
             'D3jn\Vizcache\StatValue',
             [
                 'statName' => $this->name . '@' . $name,
