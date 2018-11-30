@@ -22,7 +22,7 @@ class StatTest extends TestCase
         $analyst->shouldReceive('cacheStore')
             ->once()
             ->with('testStat', ['foo' => 'bar'])
-            ->andReturn(null);
+            ->andReturnNull();
         $analyst->shouldReceive('get')
             ->once()
             ->with('testStat', ['foo' => 'bar'])
@@ -69,7 +69,7 @@ class StatTest extends TestCase
         $analyst->shouldReceive('timeToLive')
             ->once()
             ->with('testStat', ['foo' => 'bar'])
-            ->andReturn(null);
+            ->andReturnNull();
         $analyst->shouldReceive('cacheStore')
             ->with('testStat', ['foo' => 'bar'])
             ->andReturn('existing_store');
@@ -211,7 +211,7 @@ class StatTest extends TestCase
         $analyst->shouldReceive('timeToLive')
             ->once()
             ->with('testStat', ['foo' => 'bar'])
-            ->andReturn(null);
+            ->andReturnNull();
         $analyst->shouldReceive('get')
             ->once()
             ->with('testStat', ['foo' => 'bar'])
@@ -244,12 +244,66 @@ class StatTest extends TestCase
         $this->assertTrue(true);
     }
 
+    public function testUpdateForTaggableStores()
+    {
+        $analyst = Mockery::mock('D3jn\Vizcache\Analyst');
+        $analyst->shouldReceive('cacheStore')
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('existing_store');
+        $analyst->shouldReceive('hash')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('key_name');
+        $analyst->shouldReceive('timeToLive')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturnNull();
+        $analyst->shouldReceive('get')
+            ->once()
+            ->with('testStat', ['foo' => 'bar'])
+            ->andReturn('result');
+
+        $cacheStore = Mockery::mock('Illuminate\Contracts\Cache\Store, Illuminate\Cache\TaggableStore');
+
+        $taggedCache = Mockery::mock('Illuminate\Cache\TaggedCache');
+        $taggedCache->shouldReceive('put')
+            ->once()
+            ->with('_TestAnalyst_testStat@key_name', 'result', 1);
+
+        $cacheRepository = Mockery::mock('Illuminate\Contracts\Cache\Repository');
+        $cacheRepository->shouldReceive('getStore')
+            ->once()
+            ->andReturn($cacheStore);
+        $cacheRepository->shouldReceive('tags')
+            ->once()
+            ->with(['TestAnalyst', 'testStat'])
+            ->andReturn($taggedCache);
+
+        $cacheRepository->shouldNotReceive('put');
+
+        Cache::shouldReceive('store')
+            ->once()
+            ->with('existing_store')
+            ->andReturn($cacheRepository);
+
+        $stat = new Stat(
+            $analyst,
+            ['cache_store' => 'existing_store', 'only_get_from_cache' => false, 'time_to_live' => 1],
+            'TestAnalyst',
+            'testStat',
+            ['foo' => 'bar']
+        );
+
+        $stat->update();
+        $this->assertTrue(true);
+    }
+
     public function testTouch()
     {
         // TODO
     }
 
-    public function testFlushWorksForNotTaggableStores()
+    public function testFlushWorksForTaggableStores()
     {
         $cacheStore = Mockery::mock('Illuminate\Contracts\Cache\Store, Illuminate\Cache\TaggableStore');
 

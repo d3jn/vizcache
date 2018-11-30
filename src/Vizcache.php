@@ -7,7 +7,6 @@ use D3jn\Vizcache\Analyst;
 use D3jn\Vizcache\Exceptions\AnalystNotFoundException;
 use D3jn\Vizcache\Exceptions\InvalidAnalystInstanceException;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
@@ -109,15 +108,29 @@ class Vizcache
     }
 
     /**
+     * Get array of default configuration for stats.
+     *
+     * @return array
+     */
+    public function getDefaultConfigurationForStat(): array
+    {
+        return [
+            'cache_store' => false,
+            'time_to_live' => 60,
+            'only_get_from_cache' => false
+        ];
+    }
+
+    /**
      * Return fake analyst by the name of unexisting method called.
      *
      * @param  string $name
      * @param  array  $arguments
-     * @return mixed
+     * @return \D3jn\Vizcache\Helpers\FakeAnalyst
      */
     public function __call(string $name, array $arguments)
     {
-        return App::make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
+        return $this->app->make('D3jn\Vizcache\Helpers\FakeAnalyst', compact('name'));
     }
 
     /**
@@ -150,7 +163,7 @@ class Vizcache
             $configuration['cache_store'] = $cacheStore;
         }
 
-        return App::make(
+        return $this->app->make(
             'D3jn\Vizcache\Stat',
             compact('analyst', 'configuration', 'analystName', 'methodName', 'parameters')
         );
@@ -197,20 +210,6 @@ class Vizcache
     }
 
     /**
-     * Get array of default configuration for stats.
-     *
-     * @return array
-     */
-    protected function getDefaultConfigurationForStat(): array
-    {
-        return [
-            'cache_store' => false,
-            'time_to_live' => 60,
-            'only_get_from_cache' => false
-        ];
-    }
-
-    /**
      * Resolve analyst based on provided stat name.
      *
      * @param  string $name
@@ -228,7 +227,7 @@ class Vizcache
             ), $name);
         }
 
-        $analyst = App::make($class);
+        $analyst = $this->app->make($class);
         if (! $analyst instanceof Analyst) {
             throw new InvalidAnalystInstanceException(sprintf(
                 '"%s" analyst class must be instance of D3jn\Vizcache\Analyst!',
