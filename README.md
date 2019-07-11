@@ -1,4 +1,4 @@
-> ### This package will no longer be maintained. It's tends to abstract and decouple things too much for my taste, so I moved on. It's been used only in a few projects, so it's not a big deal.
+> ### This package will no longer be maintained. It tends to abstract and decouple things too much for my taste, so I moved on. It's been used only in a few projects so far and is pretty simple at what it does for them, so no harm will come from archiving it and leaving it with a single alpha release available.
 
 # Laravel Vizcache
 
