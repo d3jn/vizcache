@@ -1,3 +1,5 @@
+> ### This package will no longer be maintained. It's tends to abstract and decouple things too much for my taste, so I moved on. It's been used only in a few projects, so it's not a big deal.
+
 # Laravel Vizcache
 
 Simple solution for an easy and centralized way to access data and configure the way it should be cached. This project started as a wrapper over Laravel Cache `remember` function that eventually grew into a more flexible and powerfull tool.
