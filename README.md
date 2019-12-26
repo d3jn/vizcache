@@ -60,7 +60,7 @@ Open `config/vizcache.php`. All available configurations are well documented the
 
 ## Authors
 
-* **Serhii Yaniuk** - [d3jn](https://twitter.com/d3jn_)
+* **Serhii Yaniuk** - [d3jn](https://twitter.com/iamdejn)
 
 ## License
 
